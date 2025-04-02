@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag & Drop mit Touch & Animation</title>
+    <title>Drag'n'Drop</title>
     <style>
         * {
             box-sizing: border-box;
@@ -108,11 +108,11 @@
 
 <body>
 
-    <h2>Drag & Drop mit Touch & Animation</h2>
+    <h2>Drag'n'Drop</h2>
 
     <div class="zones">
         <div id="zone1" class="dropzone">
-            <div id="item" class="item">Verschieb mich!</div>
+            <div id="item" class="item" draggable="true">Verschieb mich!</div>
         </div>
         <div id="zone2" class="dropzone"></div>
     </div>
@@ -130,18 +130,22 @@
         const resetBtn = document.getElementById("resetBtn");
 
         let dragged = false;
+        let isAnimating = false; // Flag für laufende Animationen
         item.setAttribute("draggable", "true");
 
         // ===== Maus-Drag =====
         item.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", "item");
+            // Das Element wird sofort unsichtbar, sodass es nicht als Duplikat erscheint
             setTimeout(() => {
-                item.style.transform = "scale(1.05)";
+                item.style.visibility = "hidden";
             }, 0);
             dragged = true;
         });
 
         item.addEventListener("dragend", () => {
+            // Bei Dragend wieder sichtbar machen
+            item.style.visibility = "visible";
             item.style.transform = "scale(1)";
             dragged = false;
         });
@@ -161,6 +165,8 @@
             zone.addEventListener("drop", (e) => {
                 e.preventDefault();
                 zone.appendChild(item);
+                // Sichtbarkeit sicherstellen, falls sie noch versteckt war
+                item.style.visibility = "visible";
                 zone.classList.remove("over");
                 scaleEffect();
             });
@@ -169,6 +175,7 @@
         document.body.addEventListener("drop", (e) => {
             if (!e.target.classList.contains("dropzone") && dragged) {
                 zone1.appendChild(item);
+                item.style.visibility = "visible";
             }
         });
 
@@ -247,6 +254,10 @@
 
         // ===== Animiertes Verschieben (Button) =====
         moveBtn.addEventListener("click", () => {
+            if (isAnimating) return; // Verhindert Mehrfachanimationen
+            isAnimating = true;
+            moveBtn.disabled = true;
+
             const sourceZone = item.parentElement;
             const targetZone = sourceZone === zone1 ? zone2 : zone1;
 
@@ -276,6 +287,8 @@
                 targetZone.appendChild(item);
                 document.body.removeChild(ghost);
                 scaleEffect();
+                moveBtn.disabled = false;
+                isAnimating = false;
             }, { once: true });
         });
 
